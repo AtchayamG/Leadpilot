@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>LeadPilot AI — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ───── THEME VARIABLES ───── */
+[data-theme="light"]{
+  --bg:#F0F4FF; --surf:#FFFFFF; --surf2:#EEF2FF; --card:#FFFFFF;
+  --bdr:#E2E8F0; --t1:#0F1C40; --t2:#4A5A80; --t3:#9AAAC4;
+  --sh:0 2px 8px rgba(30,50,120,.08); --sh2:0 8px 24px rgba(30,50,120,.12);
+  --inp:#F0F4FF; --sb:#1E3A8A; --sb-t:#FFFFFF; --sb-t2:#93C5FD;
+  --sb-act:#3B82F6; --sb-act-bg:rgba(255,255,255,.15);
+  --topbar:#FFFFFF;
+}
+[data-theme="dark"]{
+  --bg:#0B1120; --surf:#131C2F; --surf2:#1A2540; --card:#1E2D4A;
+  --bdr:#243058; --t1:#F0F4FF; --t2:#7E93C2; --t3:#3D527A;
+  --sh:0 2px 8px rgba(0,0,0,.3); --sh2:0 8px 24px rgba(0,0,0,.4);
+  --inp:#1A2540; --sb:#0F1C3F; --sb-t:#F0F4FF; --sb-t2:#7E93C2;
+  --sb-act:#3B82F6; --sb-act-bg:rgba(59,130,246,.2);
+  --topbar:#131C2F;
+}
+:root{
+  --pri:#2563EB; --pri2:#3B82F6; --acc:#10B981;
+  --warn:#F59E0B; --danger:#EF4444; --purple:#8B5CF6;
+  --r:8px; --rl:12px;
+}
+/* ───── RESET ───── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;font-size:13px}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input{font-family:inherit;outline:none;border:none}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:4px}
+
+/* ───── PROTO TOP BAR ───── */
+#pbar{
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:var(--surf);border-bottom:2px solid var(--pri2);
+  display:flex;align-items:center;gap:4px;
+  padding:0 10px;height:44px;overflow-x:auto;white-space:nowrap;
+  box-shadow:var(--sh);
+}
+#pbar::-webkit-scrollbar{height:0}
+.pl{display:flex;align-items:center;gap:6px;font-weight:800;font-size:12px;color:var(--t1);flex-shrink:0;margin-right:6px}
+.pl-ico{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#2563EB,#60A5FA);display:flex;align-items:center;justify-content:center;font-size:11px}
+.psep{width:1px;height:22px;background:var(--bdr);flex-shrink:0;margin:0 2px}
+.pn{background:transparent;border:1.5px solid var(--bdr);color:var(--t2);border-radius:6px;padding:4px 9px;font-size:10px;font-weight:600;transition:all .15s;flex-shrink:0}
+.pn:hover{color:var(--t1);border-color:var(--t3)}
+.pn.act{background:var(--pri);color:#fff;border-color:var(--pri)}
+.p-spacer{flex:1;min-width:4px}
+.theme-btn{background:var(--surf2);border:1.5px solid var(--bdr);color:var(--t2);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;flex-shrink:0;display:flex;align-items:center;gap:4px;transition:all .15s}
+.theme-btn:hover{color:var(--t1)}
+
+/* ───── SCREENS ───── */
+#app{padding-top:44px}
+.screen{display:none}
+.screen.show{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ───── DESKTOP LAYOUT ───── */
+.layout{display:flex;min-height:calc(100vh - 44px)}
+
+/* ───── SIDEBAR ───── */
+.sidebar{
+  width:210px;flex-shrink:0;
+  background:var(--sb);
+  display:flex;flex-direction:column;
+  position:sticky;top:44px;height:calc(100vh - 44px);
+  overflow-y:auto;transition:background .25s;
+}
+.sb-top{padding:16px 14px 12px;display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-ico{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#60A5FA,#2563EB);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sb-name{font-weight:800;font-size:13px;color:var(--sb-t);line-height:1.2}
+.sb-plan{font-size:9px;font-weight:700;color:var(--sb-t2);letter-spacing:.06em}
+.sb-nav{flex:1;padding:10px 8px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:500;color:var(--sb-t2);margin-bottom:2px;cursor:pointer;transition:all .15s}
+.ni:hover{background:rgba(255,255,255,.08);color:var(--sb-t)}
+.ni.act{background:var(--sb-act-bg);color:#fff;font-weight:700;border-left:3px solid var(--sb-act)}
+.ni .ico{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.sb-bot{padding:12px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:9px}
+.sb-ava{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#60A5FA,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-user-name{font-size:11px;font-weight:600;color:var(--sb-t);line-height:1.2}
+.sb-user-email{font-size:9px;color:var(--sb-t2)}
+
+/* ───── MAIN ───── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{height:52px;background:var(--topbar);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;transition:background .25s}
+.tb-title{font-weight:700;font-size:16px;flex:1;color:var(--t1)}
+.tb-search{display:flex;align-items:center;gap:8px;background:var(--inp);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 12px;min-width:180px}
+.tb-search input{background:transparent;color:var(--t1);font-size:12px;width:120px}
+.tb-search input::placeholder{color:var(--t3)}
+.tb-notif{width:34px;height:34px;border-radius:50%;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:15px;position:relative;cursor:pointer}
+.notif-dot{width:7px;height:7px;border-radius:50%;background:var(--danger);position:absolute;top:5px;right:5px;border:2px solid var(--topbar)}
+.tb-ava{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;cursor:pointer}
+.page{padding:20px;overflow-y:auto;background:var(--bg);transition:background .25s}
+
+/* ───── MOBILE TOP ───── */
+.mob-top{display:none;height:52px;background:var(--topbar);border-bottom:1px solid var(--bdr);align-items:center;padding:0 14px;gap:10px;flex-shrink:0;transition:background .25s}
+.mob-logo{display:flex;align-items:center;gap:7px;flex:1}
+.mob-ico{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#60A5FA);display:flex;align-items:center;justify-content:center;font-size:13px}
+.mob-title{font-weight:800;font-size:14px;color:var(--t1)}
+.mob-notif{width:32px;height:32px;border-radius:50%;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:14px;position:relative}
+
+/* ───── MOBILE BOTTOM NAV ───── */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:8000;background:var(--surf);border-top:1px solid var(--bdr);flex-direction:row;box-shadow:0 -4px 20px rgba(0,0,0,.1)}
+.mn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;gap:2px;font-size:9px;font-weight:600;color:var(--t3);cursor:pointer;transition:color .15s;min-width:0}
+.mn.act{color:var(--pri)}
+.mn .mi{font-size:20px;line-height:1}
+
+/* ───── RESPONSIVE ───── */
+@media(max-width:768px){
+  .sidebar{display:none!important}
+  .topbar{display:none!important}
+  .mob-top{display:flex!important}
+  .mob-nav{display:flex!important}
+  .page{padding:12px 12px 80px!important}
+  .stat-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  .stat-card{padding:12px!important}
+  .sc-val{font-size:18px!important}
+  .tbl-head{display:none!important}
+  .tbl-row{grid-template-columns:1fr!important;padding:12px!important}
+  .tbl-row>*{display:none!important}
+  .tbl-row .lead-person,.tbl-row .mob-right{display:flex!important}
+  .reports-grid{grid-template-columns:1fr!important}
+  .kanban-board{min-height:auto!important}
+  .kanban-col{width:220px!important}
+  .ai-layout{flex-direction:column!important;height:auto!important;min-height:400px}
+  .chat-box{height:400px!important;flex:none!important}
+  .ai-insight{flex-wrap:wrap!important;gap:10px!important}
+  .ai-insight .btn-pri{width:100%!important}
+  .features-grid{grid-template-columns:1fr!important}
+  .pricing-grid{grid-template-columns:1fr!important}
+  .landing-nav .nav-links,.landing-nav .nav-btns{display:none!important}
+  .hero-title{font-size:24px!important}
+  .hero-stats{gap:16px!important;flex-wrap:wrap!important}
+  .hero-section{padding:32px 16px!important}
+  .features-sec,.pricing-sec{padding:32px 16px!important}
+  .settings-box .s-row{flex-wrap:nowrap}
+  .profile-hdr{flex-direction:column!important;align-items:flex-start!important;gap:12px!important}
+  .layout{flex-direction:column}
+  .tb-search{display:none!important}
+}
+@media(min-width:769px){
+  .mob-top,.mob-nav{display:none!important}
+}
+@media(max-width:480px){
+  .stat-grid{gap:8px!important}
+  .page{padding:10px 10px 76px!important}
+}
+
+/* ───── STAT CARDS ───── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--sh);transition:transform .2s,box-shadow .2s,background .25s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start}
+.sc-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.sc-trend{font-size:10px;font-weight:700;color:var(--acc);display:flex;align-items:center;gap:2px}
+.sc-val{font-weight:800;font-size:22px;line-height:1;color:var(--t1)}
+.sc-lbl{font-size:11px;color:var(--t2);margin-top:2px}
+.mini-chart{height:28px;display:flex;align-items:flex-end;gap:2px;margin-top:6px}
+.mb{flex:1;border-radius:3px 3px 0 0;min-height:3px}
+
+/* ───── SECTION HEADER ───── */
+.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sh-title{font-weight:700;font-size:14px;color:var(--t1)}
+.sh-link{font-size:12px;color:var(--pri);font-weight:600;cursor:pointer}
+
+/* ───── AI INSIGHT CARD ───── */
+.ai-insight{background:linear-gradient(135deg,#EFF6FF,#EDE9FE);border:1px solid #BFDBFE;border-radius:var(--rl);padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:20px;box-shadow:var(--sh)}
+[data-theme="dark"] .ai-insight{background:linear-gradient(135deg,#1e2d4a,#1a2340);border-color:#3B82F644}
+.ai-ico{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#2563EB,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ai-txt{flex:1}
+.ai-lbl{font-weight:700;font-size:13px;color:var(--t1);margin-bottom:3px}
+.ai-desc{font-size:12px;color:var(--t2);line-height:1.5}
+
+/* ───── TABLE ───── */
+.tbl{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh);transition:background .25s}
+.tbl-head{display:grid;grid-template-columns:2fr 1.4fr 1fr 1fr 1fr;padding:10px 16px;border-bottom:1px solid var(--bdr);font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;background:var(--surf2)}
+.tbl-row{display:grid;grid-template-columns:2fr 1.4fr 1fr 1fr 1fr;padding:13px 16px;border-bottom:1px solid var(--bdr);align-items:center;cursor:pointer;transition:background .15s}
+.tbl-row:last-child{border-bottom:none}
+.tbl-row:hover{background:var(--surf2)}
+.lead-person{display:flex;align-items:center;gap:10px}
+.lp-ava{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.ln{font-size:13px;font-weight:600;color:var(--t1)}
+.ls{font-size:10px;color:var(--t3);margin-top:1px}
+.lv{font-size:13px;font-weight:700;color:var(--acc)}
+.lt{font-size:11px;color:var(--t3)}
+.mob-right{display:none;flex-direction:column;align-items:flex-end;gap:4px;margin-left:auto}
+
+/* ───── BADGES ───── */
+.bdg{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.b-new{background:#DBEAFE;color:#1D4ED8}        [data-theme="dark"] .b-new{background:#1D4ED820;color:#60A5FA}
+.b-contact{background:#FEF3C7;color:#92400E}    [data-theme="dark"] .b-contact{background:#F59E0B20;color:#FCD34D}
+.b-followup{background:#EDE9FE;color:#5B21B6}   [data-theme="dark"] .b-followup{background:#8B5CF620;color:#A78BFA}
+.b-qualified{background:#D1FAE5;color:#065F46}  [data-theme="dark"] .b-qualified{background:#10B98120;color:#34D399}
+.b-proposal{background:#EDE9FE;color:#5B21B6}   [data-theme="dark"] .b-proposal{background:#8B5CF620;color:#A78BFA}
+.b-nego{background:#FFEDD5;color:#9A3412}        [data-theme="dark"] .b-nego{background:#F9731620;color:#FB923C}
+.b-won{background:#D1FAE5;color:#065F46}         [data-theme="dark"] .b-won{background:#10B98120;color:#34D399}
+.b-lost{background:#FEE2E2;color:#991B1B}        [data-theme="dark"] .b-lost{background:#EF444420;color:#FCA5A5}
+
+/* ───── BUTTONS ───── */
+.btn-pri{background:var(--pri);color:#fff;border-radius:var(--r);padding:9px 18px;font-size:12px;font-weight:700;transition:all .2s;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.btn-pri:hover{background:#1D4ED8;transform:translateY(-1px)}
+.btn-sm{padding:6px 13px;font-size:11px}
+.btn-out{background:transparent;border:1.5px solid var(--bdr);color:var(--t2);border-radius:var(--r);padding:9px 18px;font-size:12px;font-weight:600;transition:all .2s}
+.btn-out:hover{border-color:var(--t2);color:var(--t1)}
+.btn-danger{background:var(--danger);color:#fff;border-radius:var(--r);padding:9px 18px;font-size:12px;font-weight:700}
+
+/* ───── SEARCH / CHIPS ───── */
+.srch{display:flex;align-items:center;gap:9px;background:var(--inp);border:1px solid var(--bdr);border-radius:var(--r);padding:8px 13px;margin-bottom:12px;transition:border .2s}
+.srch:focus-within{border-color:var(--pri)}
+.srch input{flex:1;background:transparent;color:var(--t1);font-size:12px}
+.srch input::placeholder{color:var(--t3)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{background:var(--surf2);border:1.5px solid var(--bdr);color:var(--t2);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.chip.act{background:var(--pri);color:#fff;border-color:var(--pri)}
+.chip:hover:not(.act){border-color:var(--pri);color:var(--pri)}
+
+/* ───── KANBAN ───── */
+.kanban-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:14px;min-height:440px}
+.kanban-col{width:240px;flex-shrink:0}
+.kn-head{display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:8px;margin-bottom:10px}
+.kn-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.kn-lbl{font-size:12px;font-weight:700;flex:1}
+.kn-cnt{padding:2px 8px;border-radius:9px;font-size:10px;font-weight:700}
+.kn-sub{font-size:10px;color:var(--t3);padding:0 2px;margin-bottom:8px}
+.deal-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:13px;margin-bottom:9px;cursor:pointer;transition:all .2s;box-shadow:var(--sh)}
+.deal-card:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.d-title{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:5px}
+.d-person{font-size:11px;color:var(--t2);margin-bottom:9px}
+.d-foot{display:flex;justify-content:space-between;align-items:center}
+.d-val{font-size:12px;font-weight:700;color:var(--acc)}
+.d-prob{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px}
+
+/* ───── AI CHAT ───── */
+.ai-layout{display:flex;gap:16px;height:calc(100vh - 44px - 52px - 80px);min-height:350px}
+.chat-box{flex:1;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--sh)}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.msg{display:flex;gap:9px;max-width:88%}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.m-ava{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.m-bub{padding:11px 14px;border-radius:14px;font-size:12px;line-height:1.6}
+.msg.ai .m-ava{background:#DBEAFE;color:#1D4ED8}  [data-theme="dark"] .msg.ai .m-ava{background:#1D4ED820;color:#60A5FA}
+.msg.ai .m-bub{background:var(--surf2);border:1px solid var(--bdr);border-bottom-left-radius:3px;color:var(--t1)}
+.msg.user .m-bub{background:var(--pri);color:#fff;border-bottom-right-radius:3px}
+.chat-inp-wrap{padding:12px;border-top:1px solid var(--bdr);display:flex;gap:8px;align-items:center}
+.chat-inp{flex:1;background:var(--inp);border:1.5px solid var(--bdr);color:var(--t1);border-radius:var(--r);padding:9px 13px;font-size:12px;transition:border .2s}
+.chat-inp:focus{border-color:var(--pri)}
+.chat-inp::placeholder{color:var(--t3)}
+.chat-send{width:36px;height:36px;background:var(--pri);border-radius:var(--r);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.quick-btns{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.qb{background:#EFF6FF;border:1.5px solid #BFDBFE;color:#2563EB;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;transition:all .15s}
+[data-theme="dark"] .qb{background:#1D4ED820;border-color:#3B82F644;color:#60A5FA}
+.qb:hover{background:#DBEAFE}
+[data-theme="dark"] .qb:hover{background:#1D4ED840}
+
+/* ───── REPORTS ───── */
+.reports-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px;box-shadow:var(--sh);transition:background .25s}
+.chart-title{font-weight:700;font-size:13px;color:var(--t1);margin-bottom:16px}
+.bar-chart{display:flex;align-items:flex-end;gap:7px;height:120px;padding-bottom:6px;border-bottom:1px solid var(--bdr)}
+.bg{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+.bar{width:100%;border-radius:5px 5px 0 0;transition:.2s;cursor:pointer;min-height:4px}
+.bar:hover{opacity:.8}
+.bar-l{font-size:9px;color:var(--t3);text-align:center}
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.legend{display:flex;flex-direction:column;gap:7px;flex:1}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t2)}
+.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.leg-val{font-weight:700;margin-left:auto;color:var(--t1)}
+.pbar-list{display:flex;flex-direction:column;gap:11px}
+.pb-row{display:flex;align-items:center;gap:8px}
+.pb-lbl{font-size:11px;color:var(--t2);width:82px;flex-shrink:0}
+.pb-track{flex:1;height:7px;background:var(--surf2);border-radius:4px;overflow:hidden}
+.pb-fill{height:100%;border-radius:4px}
+.pb-val{font-size:11px;font-weight:700;width:28px;text-align:right;flex-shrink:0;color:var(--t1)}
+
+/* ───── SETTINGS ───── */
+.profile-hdr{background:linear-gradient(135deg,#EFF6FF,#EDE9FE);border:1px solid #BFDBFE;border-radius:var(--rl);padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:18px;box-shadow:var(--sh)}
+[data-theme="dark"] .profile-hdr{background:linear-gradient(135deg,#1e2d4a,#1e1a3a);border-color:#3B82F644}
+.p-ava-lg{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}
+.p-nm{font-weight:800;font-size:17px;color:var(--t1)}
+.p-em{font-size:12px;color:var(--t2);margin-top:2px}
+.plan-bdg{display:inline-flex;align-items:center;background:#D1FAE5;color:#065F46;border-radius:20px;font-size:9px;font-weight:700;padding:2px 9px;margin-top:5px}
+[data-theme="dark"] .plan-bdg{background:#10B98120;color:#34D399}
+.settings-box{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:16px;box-shadow:var(--sh);transition:background .25s}
+.s-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--bdr);cursor:pointer;transition:background .15s}
+.s-row:last-child{border-bottom:none}
+.s-row:hover{background:var(--surf2)}
+.s-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.s-lbl{flex:1}
+.s-name{font-size:13px;font-weight:600;color:var(--t1)}
+.s-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.s-chevron{color:var(--t3);font-size:16px}
+
+/* Theme Toggle Row */
+.theme-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--bdr)}
+.toggle-switch{width:44px;height:24px;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:12px;position:relative;cursor:pointer;flex-shrink:0;transition:background .25s}
+.toggle-switch.on{background:var(--pri);border-color:var(--pri)}
+.toggle-knob{width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:1px;left:2px;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.toggle-switch.on .toggle-knob{transform:translateX(20px)}
+
+/* ───── LANDING ───── */
+.landing-page{background:var(--bg);min-height:100vh;transition:background .25s}
+.landing-nav{display:flex;align-items:center;padding:14px 48px;background:var(--surf);border-bottom:1px solid var(--bdr);position:sticky;top:44px;z-index:100;box-shadow:var(--sh)}
+.landing-logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;color:var(--t1);flex:1}
+.landing-logo-ico{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#60A5FA);display:flex;align-items:center;justify-content:center;font-size:14px}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{font-size:13px;color:var(--t2);font-weight:500;transition:color .15s}
+.nav-links a:hover{color:var(--pri)}
+.nav-btns{display:flex;gap:8px;margin-left:24px}
+.hero-section{padding:72px 60px 56px;text-align:center;background:radial-gradient(ellipse at 50% 0%,#DBEAFE88 0%,transparent 60%)}
+[data-theme="dark"] .hero-section{background:radial-gradient(ellipse at 50% 0%,#1D4ED840 0%,transparent 60%)}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:#EFF6FF;border:1px solid #BFDBFE;color:#2563EB;border-radius:20px;font-size:11px;font-weight:700;padding:5px 14px;margin-bottom:24px}
+[data-theme="dark"] .hero-badge{background:#1D4ED820;border-color:#3B82F644;color:#60A5FA}
+.hero-title{font-weight:800;font-size:52px;line-height:1.1;max-width:760px;margin:0 auto 18px;color:var(--t1)}
+.hero-title span{color:var(--pri)}
+.hero-sub{font-size:16px;color:var(--t2);max-width:500px;margin:0 auto 36px;line-height:1.7}
+.hero-btns{display:flex;gap:12px;justify-content:center;margin-bottom:52px}
+.btn-hero{background:linear-gradient(135deg,#2563EB,#3B82F6);color:#fff;border-radius:var(--r);padding:13px 30px;font-size:14px;font-weight:700;box-shadow:0 4px 20px rgba(37,99,235,.35);transition:all .2s}
+.btn-hero:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,99,235,.45)}
+.hero-stats{display:flex;gap:36px;justify-content:center;border-top:1px solid var(--bdr);padding-top:36px}
+.h-stat-val{font-weight:800;font-size:30px;color:var(--t1)}
+.h-stat-lbl{font-size:12px;color:var(--t3);margin-top:3px}
+.features-sec{padding:60px 60px}
+.features-title{font-weight:800;font-size:32px;text-align:center;margin-bottom:10px;color:var(--t1)}
+.features-sub{text-align:center;color:var(--t2);font-size:14px;margin-bottom:40px}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:24px;box-shadow:var(--sh);transition:all .2s}
+.feat-card:hover{border-color:var(--pri);transform:translateY(-3px);box-shadow:var(--sh2)}
+.feat-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.feat-name{font-weight:700;font-size:14px;margin-bottom:8px;color:var(--t1)}
+.feat-desc{font-size:12px;color:var(--t2);line-height:1.7}
+.pricing-sec{padding:60px;background:var(--surf);transition:background .25s}
+.pricing-title{font-weight:800;font-size:32px;text-align:center;margin-bottom:40px;color:var(--t1)}
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:680px;margin:0 auto}
+.pricing-card{background:var(--card);border:1.5px solid var(--bdr);border-radius:var(--rl);padding:28px;box-shadow:var(--sh)}
+.pricing-card.featured{background:linear-gradient(135deg,#EFF6FF,#EDE9FE);border-color:#BFDBFE;box-shadow:0 8px 32px rgba(37,99,235,.15)}
+[data-theme="dark"] .pricing-card.featured{background:linear-gradient(135deg,#1e2d4a,#1e1a3a);border-color:#3B82F644}
+.pc-plan{font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.07em;margin-bottom:8px}
+.pc-price{font-weight:800;font-size:38px;color:var(--t1);margin-bottom:4px}
+.pc-price span{font-size:14px;font-weight:500;color:var(--t2)}
+.pc-feats{margin:18px 0;display:flex;flex-direction:column;gap:9px}
+.pf{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--t2)}
+.pf-check{color:var(--acc);font-size:14px;font-weight:700}
+.pf-no{color:var(--t3)}
+
+/* ───── LEAD DETAIL PANEL ───── */
+.lead-panel{position:fixed;top:44px;right:-400px;width:360px;height:calc(100vh - 44px);background:var(--surf);border-left:1px solid var(--bdr);z-index:7000;display:flex;flex-direction:column;transition:right .3s ease,background .25s;box-shadow:-8px 0 24px rgba(0,0,0,.1)}
+.lead-panel.open{right:0}
+.lp-head{padding:18px;border-bottom:1px solid var(--bdr);display:flex;align-items:flex-start;gap:12px}
+.lp-ava{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0}
+.lp-name{font-weight:700;font-size:15px;color:var(--t1)}
+.lp-co{font-size:12px;color:var(--t2);margin-top:2px}
+.lp-bdgs{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.lp-close{background:none;color:var(--t3);font-size:18px;line-height:1;padding:2px}
+.lp-body{padding:18px;flex:1;overflow-y:auto}
+.lp-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--bdr);font-size:12px}
+.lp-row:last-child{border-bottom:none}
+.lp-key{color:var(--t3);font-size:10px;width:78px;flex-shrink:0;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.lp-ai-box{margin-top:16px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--r);padding:12px;font-size:12px;color:#1D4ED8;line-height:1.6}
+[data-theme="dark"] .lp-ai-box{background:#1D4ED820;border-color:#3B82F644;color:#93C5FD}
+.lp-foot{padding:14px 18px;border-top:1px solid var(--bdr);display:flex;gap:9px}
+.btn-followup{flex:1;background:linear-gradient(135deg,#2563EB,#8B5CF6);color:#fff;border-radius:var(--r);padding:9px;font-size:12px;font-weight:700}
+
+/* ───── CHARTS (SVG) ───── */
+svg text{transition:fill .25s}
+
+/* ───── CARD SECTION ───── */
+.card-sec{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px;margin-bottom:18px;box-shadow:var(--sh);transition:background .25s}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ PROTOTYPE BAR ═══════════ -->
+<div id="pbar">
+  <div class="pl">
+    <div class="pl-ico">✦</div>
+    <span>LeadPilot AI</span>
+  </div>
+  <span style="background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;border-radius:20px;font-size:8px;font-weight:700;padding:2px 8px;flex-shrink:0" id="proto-badge">PROTOTYPE</span>
+  <div class="psep"></div>
+  <div style="display:flex;gap:4px" id="pnav">
+    <button class="pn act" onclick="nav('dashboard')">🏠 Dashboard</button>
+    <button class="pn" onclick="nav('leads')">👥 Leads</button>
+    <button class="pn" onclick="nav('deals')">🤝 Deals</button>
+    <button class="pn" onclick="nav('ai')">✨ AI</button>
+    <button class="pn" onclick="nav('reports')">📊 Reports</button>
+    <button class="pn" onclick="nav('settings')">⚙️ Settings</button>
+    <button class="pn" onclick="nav('landing')">🌐 Landing</button>
+  </div>
+  <div class="p-spacer"></div>
+  <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark Mode</button>
+</div>
+
+<!-- ═══════════ LEAD PANEL ═══════════ -->
+<div class="lead-panel" id="leadPanel">
+  <div class="lp-head">
+    <div class="lp-ava" style="background:#DBEAFE;color:#1D4ED8">PS</div>
+    <div style="flex:1">
+      <div class="lp-name">Priya Sharma</div>
+      <div class="lp-co">Tech Innovate Pvt Ltd</div>
+      <div class="lp-bdgs">
+        <span class="bdg b-proposal">Proposal Sent</span>
+        <span class="bdg b-contact">High Priority</span>
+      </div>
+    </div>
+    <button class="lp-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="lp-body">
+    <div class="lp-row"><span class="lp-key">EMAIL</span><span style="font-size:12px;color:var(--t1)">priya@techinnovate.com</span></div>
+    <div class="lp-row"><span class="lp-key">PHONE</span><span style="font-size:12px;color:var(--t1)">+91 98765 43210</span></div>
+    <div class="lp-row"><span class="lp-key">VALUE</span><span style="font-size:13px;font-weight:700;color:var(--acc)">₹81,005</span></div>
+    <div class="lp-row"><span class="lp-key">LAST</span><span style="font-size:12px;color:var(--t1)">3 days ago</span></div>
+    <div class="lp-row"><span class="lp-key">FOLLOW UP</span><span style="font-size:12px;color:var(--t1)">Tomorrow</span></div>
+    <div class="lp-ai-box">✨ <strong>AI Suggestion:</strong> Send follow-up on pricing proposal. 3 days since last contact — high close probability this week.</div>
+    <div style="margin-top:16px">
+      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;margin-bottom:10px">NOTES</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7">Called Monday — interested in premium plan. Wants to discuss payment terms. Decision expected end of week.</div>
+    </div>
+  </div>
+  <div class="lp-foot">
+    <button class="btn-followup">✨ Generate Follow-Up</button>
+    <button class="btn-pri btn-sm">+ Note</button>
+  </div>
+</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="app">
+
+<!-- ─── DASHBOARD ─── -->
+<div class="screen show" id="sc-dashboard">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sb-top">
+        <div class="sb-ico">✦</div>
+        <div><div class="sb-name">LeadPilot AI</div><div class="sb-plan">PRO PLAN</div></div>
+      </div>
+      <nav class="sb-nav">
+        <div class="ni act" onclick="nav('dashboard')"><span class="ico">🏠</span> Dashboard</div>
+        <div class="ni" onclick="nav('leads')"><span class="ico">👥</span> Leads</div>
+        <div class="ni" onclick="nav('deals')"><span class="ico">🤝</span> Deals</div>
+        <div class="ni" onclick="nav('ai')"><span class="ico">✨</span> AI Assistant</div>
+        <div class="ni" onclick="nav('reports')"><span class="ico">📊</span> Reports</div>
+        <div class="ni" onclick="nav('settings')"><span class="ico">⚙️</span> Settings</div>
+      </nav>
+      <div class="sb-bot">
+        <div class="sb-ava">AT</div>
+        <div><div class="sb-user-name">Atchayam</div><div class="sb-user-email">atchayam@leadpilot.ai</div></div>
+      </div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <span class="tb-title">Dashboard</span>
+        <div class="tb-search"><span style="color:var(--t3);font-size:14px">🔍</span><input placeholder="Search..."></div>
+        <div class="tb-notif">🔔<div class="notif-dot"></div></div>
+        <div class="tb-ava">AT</div>
+      </div>
+      <!-- Mobile topbar -->
+      <div class="mob-top">
+        <div class="mob-logo">
+          <div class="mob-ico">✦</div>
+          <div class="mob-title">Dashboard</div>
+        </div>
+        <div class="mob-notif">🔔<div class="notif-dot" style="border-color:var(--topbar)"></div></div>
+        <div class="tb-ava" style="width:32px;height:32px;font-size:11px">AT</div>
+      </div>
+      <div class="page">
+        <!-- Stats -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="sc-top">
+              <div class="sc-ico" style="background:#EFF6FF">👥</div>
+              <span class="sc-trend">↑ 12%</span>
+            </div>
+            <div><div class="sc-val">245</div><div class="sc-lbl">Total Leads</div></div>
+            <div class="mini-chart"><div class="mb" style="height:40%;background:#93C5FD"></div><div class="mb" style="height:55%;background:#93C5FD"></div><div class="mb" style="height:48%;background:#93C5FD"></div><div class="mb" style="height:70%;background:#93C5FD"></div><div class="mb" style="height:60%;background:#93C5FD"></div><div class="mb" style="height:82%;background:#93C5FD"></div><div class="mb" style="height:100%;background:#2563EB"></div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-top">
+              <div class="sc-ico" style="background:#FEF3C7">🤝</div>
+              <span class="sc-trend">↑ 8%</span>
+            </div>
+            <div><div class="sc-val">32</div><div class="sc-lbl">Active Deals</div></div>
+            <div class="mini-chart"><div class="mb" style="height:55%;background:#FCD34D"></div><div class="mb" style="height:40%;background:#FCD34D"></div><div class="mb" style="height:80%;background:#FCD34D"></div><div class="mb" style="height:60%;background:#FCD34D"></div><div class="mb" style="height:72%;background:#FCD34D"></div><div class="mb" style="height:88%;background:#FCD34D"></div><div class="mb" style="height:100%;background:#F59E0B"></div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-top">
+              <div class="sc-ico" style="background:#D1FAE5;font-weight:700;font-size:14px">₹</div>
+              <span class="sc-trend">↑ 24%</span>
+            </div>
+            <div><div class="sc-val" style="font-size:18px">₹7,80,000</div><div class="sc-lbl">Closed Revenue</div></div>
+            <div class="mini-chart"><div class="mb" style="height:30%;background:#6EE7B7"></div><div class="mb" style="height:50%;background:#6EE7B7"></div><div class="mb" style="height:42%;background:#6EE7B7"></div><div class="mb" style="height:75%;background:#6EE7B7"></div><div class="mb" style="height:65%;background:#6EE7B7"></div><div class="mb" style="height:85%;background:#6EE7B7"></div><div class="mb" style="height:100%;background:#10B981"></div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-top">
+              <div class="sc-ico" style="background:#FEE2E2">🔔</div>
+              <span class="sc-trend" style="color:var(--danger)">Today</span>
+            </div>
+            <div><div class="sc-val" style="color:var(--danger)">8</div><div class="sc-lbl">Follow-up Today</div></div>
+            <div class="mini-chart"><div class="mb" style="height:45%;background:#FCA5A5"></div><div class="mb" style="height:70%;background:#FCA5A5"></div><div class="mb" style="height:50%;background:#FCA5A5"></div><div class="mb" style="height:90%;background:#FCA5A5"></div><div class="mb" style="height:65%;background:#FCA5A5"></div><div class="mb" style="height:78%;background:#FCA5A5"></div><div class="mb" style="height:100%;background:#EF4444"></div></div>
+          </div>
+        </div>
+
+        <!-- AI Insight -->
+        <div class="ai-insight">
+          <div class="ai-ico">✨</div>
+          <div class="ai-txt">
+            <div class="ai-lbl">AI Insights</div>
+            <div class="ai-desc">3 hot leads have not been contacted in 3 days. Suggested action: Follow up now — highest close probability this week.</div>
+          </div>
+          <button class="btn-pri" onclick="nav('ai')">Follow Up Now</button>
+        </div>
+
+        <!-- Leads Overview -->
+        <div class="sh"><span class="sh-title">Recent Leads</span><span class="sh-link" onclick="nav('leads')">View All →</span></div>
+        <div class="tbl">
+          <div class="tbl-head"><span>Name</span><span>Company</span><span>Status</span><span>Value</span><span>Last Contact</span></div>
+          <div class="tbl-row" onclick="openPanel()">
+            <div class="lead-person"><div class="lp-ava" style="background:#DBEAFE;color:#1D4ED8">PS</div><div><div class="ln">Priya Sharma</div><div class="ls">priya@techinnovate.com</div></div></div>
+            <span style="font-size:12px;color:var(--t2)">Tech Innovate</span>
+            <span class="bdg b-proposal">Proposal Sent</span>
+            <span class="lv">₹81,005</span>
+            <span class="lt">3 days ago</span>
+            <div class="mob-right"><span class="lv">₹81K</span><span class="bdg b-proposal">Proposal</span></div>
+          </div>
+          <div class="tbl-row" onclick="openPanel()">
+            <div class="lead-person"><div class="lp-ava" style="background:#FEF3C7;color:#92400E">DI</div><div><div class="ln">Deepak Iyer</div><div class="ls">deepak@datasync.io</div></div></div>
+            <span style="font-size:12px;color:var(--t2)">DataSync</span>
+            <span class="bdg b-contact">Contacted</span>
+            <span class="lv">₹90,000</span>
+            <span class="lt">1 day ago</span>
+            <div class="mob-right"><span class="lv">₹90K</span><span class="bdg b-contact">Contacted</span></div>
+          </div>
+          <div class="tbl-row" onclick="openPanel()">
+            <div class="lead-person"><div class="lp-ava" style="background:#EDE9FE;color:#5B21B6">MN</div><div><div class="ln">Meena Nair</div><div class="ls">meena@cloudco.com</div></div></div>
+            <span style="font-size:12px;color:var(--t2)">CloudCo</span>
+            <span class="bdg b-followup">Follow Up</span>
+            <span class="lv">₹75,000</span>
+            <span class="lt">5 days ago</span>
+            <div class="mob-right"><span class="lv">₹75K</span><span class="bdg b-followup">Follow Up</span></div>
+          </div>
+          <div class="tbl-row" onclick="openPanel()">
+            <div class="lead-person"><div class="lp-ava" style="background:#D1FAE5;color:#065F46">RK</div><div><div class="ln">Raj Kumar</div><div class="ls">raj@finbridge.in</div></div></div>
+            <span style="font-size:12px;color:var(--t2)">FinBridge</span>
+            <span class="bdg b-qualified">Qualified</span>
+            <span class="lv">₹1,06,000</span>
+            <span class="lt">Today</span>
+            <div class="mob-right"><span class="lv">₹1.06L</span><span class="bdg b-qualified">Qualified</span></div>
+          </div>
+          <div class="tbl-row" onclick="openPanel()">
+            <div class="lead-person"><div class="lp-ava" style="background:#FEE2E2;color:#991B1B">SB</div><div><div class="ln">Sunita Bhat</div><div class="ls">sunita@retailon.com</div></div></div>
+            <span style="font-size:12px;color:var(--t2)">RetailOn</span>
+            <span class="bdg b-new">New</span>
+            <span class="lv">₹80,005</span>
+            <span class="lt">Just now</span>
+            <div class="mob-right"><span class="lv">₹80K</span><span class="bdg b-new">New</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Mobile Nav -->
+  <nav class="mob-nav">
+    <div class="mn act" onclick="nav('dashboard')"><span class="mi">🏠</span>Home</div>
+    <div class="mn" onclick="nav('leads')"><span class="mi">👥</span>Leads</div>
+    <div class="mn" onclick="nav('deals')"><span class="mi">🤝</span>Deals</div>
+    <div class="mn" onclick="nav('ai')"><span class="mi">✨</span>AI</div>
+    <div class="mn" onclick="nav('settings')"><span class="mi">⚙️</span>Settings</div>
+  </nav>
+</div>
+
+<!-- ─── LEADS ─── -->
+<div class="screen" id="sc-leads">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sb-top"><div class="sb-ico">✦</div><div><div class="sb-name">LeadPilot AI</div><div class="sb-plan">PRO PLAN</div></div></div>
+      <nav class="sb-nav">
+        <div class="ni" onclick="nav('dashboard')"><span class="ico">🏠</span> Dashboard</div>
+        <div class="ni act"><span class="ico">👥</span> Leads</div>
+        <div class="ni" onclick="nav('deals')"><span class="ico">🤝</span> Deals</div>
+        <div class="ni" onclick="nav('ai')"><span class="ico">✨</span> AI Assistant</div>
+        <div class="ni" onclick="nav('reports')"><span class="ico">📊</span> Reports</div>
+        <div class="ni" onclick="nav('settings')"><span class="ico">⚙️</span> Settings</div>
+      </nav>
+      <div class="sb-bot"><div class="sb-ava">AT</div><div><div class="sb-user-name">Atchayam</div><div class="sb-user-email">atchayam@leadpilot.ai</div></div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <span class="tb-title">Leads</span>
+        <span style="font-size:11px;color:var(--t3)">245 total</span>
+        <button class="btn-pri btn-sm" style="margin-left:auto">+ Add Lead</button>
+      </div>
+      <div class="mob-top">
+        <div class="mob-logo"><div class="mob-ico">✦</div><div class="mob-title">Leads</div></div>
+        <button class="btn-pri btn-sm">+ Add</button>
+      </div>
+      <div class="page">
+        <div class="srch"><span style="color:var(--t3)">🔍</span><input placeholder="Search leads by name, company, email..."></div>
+        <div class="chips">
+          <button class="chip act">All (245)</button>
+          <button class="chip">New (45)</button>
+          <button class="chip">Contacted (80)</button>
+          <button class="chip">Follow Up (60)</button>
+          <button class="chip">Qualified (40)</button>
+          <button class="chip">Converted (20)</button>
+        </div>
+        <div class="tbl">
+          <div class="tbl-head"><span>Name</span><span>Company</span><span>Status</span><span>Value</span><span>Last Contact</span></div>
+          <div class="tbl-row" onclick="openPanel()"><div class="lead-person"><div class="lp-ava" style="background:#DBEAFE;color:#1D4ED8">PS</div><div><div class="ln">Priya Sharma</div><div class="ls">Tech Innovate</div></div></div><span style="color:var(--t2);font-size:12px">Tech Innovate Pvt Ltd</span><span class="bdg b-proposal">Proposal Sent</span><span class="lv">₹81,005</span><span class="lt">3 days ago</span><div class="mob-right"><span class="lv">₹81K</span><span class="bdg b-proposal" style="font-size:9px">Proposal</span></div></div>
+          <div class="tbl-row" onclick="openPanel()"><div class="lead-person"><div class="lp-ava" style="background:#FEF3C7;color:#92400E">DI</div><div><div class="ln">Deepak Iyer</div><div class="ls">DataSync</div></div></div><span style="color:var(--t2);font-size:12px">DataSync Solutions</span><span class="bdg b-contact">Contacted</span><span class="lv">₹90,000</span><span class="lt">1 day ago</span><div class="mob-right"><span class="lv">₹90K</span><span class="bdg b-contact" style="font-size:9px">Contacted</span></div></div>
+          <div class="tbl-row" onclick="openPanel()"><div class="lead-person"><div class="lp-ava" style="background:#EDE9FE;color:#5B21B6">MN</div><div><div class="ln">Meena Nair</div><div class="ls">CloudCo</div></div></div><span style="color:var(--t2);font-size:12px">CloudCo Technologies</span><span class="bdg b-followup">Follow Up</span><span class="lv">₹75,000</span><span class="lt">5 days ago</span><div class="mob-right"><span class="lv">₹75K</span><span class="bdg b-followup" style="font-size:9px">Follow Up</span></div></div>
+          <div class="tbl-row" onclick="openPanel()"><div class="lead-person"><div class="lp-ava" style="background:#D1FAE5;color:#065F46">RK</div><div><div class="ln">Raj Kumar</div><div class="ls">FinBridge</div></div></div><span style="color:var(--t2);font-size:12px">FinBridge Pvt Ltd</span><span class="bdg b-qualified">Qualified</span><span class="lv">₹1,06,000</span><span class="lt">Today</span><div class="mob-right"><span class="lv">₹1.06L</span><span class="bdg b-qualified" style="font-size:9px">Qualified</span></div></div>
+          <div class="tbl-row" onclick="openPanel()"><div class="lead-person"><div class="lp-ava" style="background:#FEE2E2;color:#991B1B">SB</div><div><div class="ln">Sunita Bhat</div><div class="ls">RetailOn</div></div></div><span style="color:var(--t2);font-size:12px">RetailOn Pvt Ltd</span><span class="bdg b-new">New</span><span class="lv">₹80,005</span><span class="lt">Just now</span><div class="mob-right"><span class="lv">₹80K</span><span class="bdg b-new" style="font-size:9px">New</span></div></div>
+          <div class="tbl-row" onclick="openPanel()"><div class="lead-person"><div class="lp-ava" style="background:#DBEAFE;color:#1D4ED8">VR</div><div><div class="ln">Vijay Rao</div><div class="ls">GrowthHub</div></div></div><span style="color:var(--t2);font-size:12px">GrowthHub Marketing</span><span class="bdg b-contact">Contacted</span><span class="lv">₹65,000</span><span class="lt">2 days ago</span><div class="mob-right"><span class="lv">₹65K</span><span class="bdg b-contact" style="font-size:9px">Contacted</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="mob-nav">
+    <div class="mn" onclick="nav('dashboard')"><span class="mi">🏠</span>Home</div>
+    <div class="mn act"><span class="mi">👥</span>Leads</div>
+    <div class="mn" onclick="nav('deals')"><span class="mi">🤝</span>Deals</div>
+    <div class="mn" onclick="nav('ai')"><span class="mi">✨</span>AI</div>
+    <div class="mn" onclick="nav('settings')"><span class="mi">⚙️</span>Settings</div>
+  </nav>
+</div>
+
+<!-- ─── DEALS ─── -->
+<div class="screen" id="sc-deals">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sb-top"><div class="sb-ico">✦</div><div><div class="sb-name">LeadPilot AI</div><div class="sb-plan">PRO PLAN</div></div></div>
+      <nav class="sb-nav">
+        <div class="ni" onclick="nav('dashboard')"><span class="ico">🏠</span> Dashboard</div>
+        <div class="ni" onclick="nav('leads')"><span class="ico">👥</span> Leads</div>
+        <div class="ni act"><span class="ico">🤝</span> Deals</div>
+        <div class="ni" onclick="nav('ai')"><span class="ico">✨</span> AI Assistant</div>
+        <div class="ni" onclick="nav('reports')"><span class="ico">📊</span> Reports</div>
+        <div class="ni" onclick="nav('settings')"><span class="ico">⚙️</span> Settings</div>
+      </nav>
+      <div class="sb-bot"><div class="sb-ava">AT</div><div><div class="sb-user-name">Atchayam</div><div class="sb-user-email">atchayam@leadpilot.ai</div></div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar"><span class="tb-title">Deals Pipeline</span><button class="btn-pri btn-sm" style="margin-left:auto">+ New Deal</button></div>
+      <div class="mob-top"><div class="mob-logo"><div class="mob-ico">✦</div><div class="mob-title">Deals</div></div><button class="btn-pri btn-sm">+ Deal</button></div>
+      <div class="page">
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="chip act">Save</button><button class="chip">Contacted ▾</button><button class="chip">Proposal ▾</button><button class="chip">Close ▾</button><button class="chip">Proposal ▾</button>
+        </div>
+        <div class="kanban-board">
+          <!-- New -->
+          <div class="kanban-col">
+            <div class="kn-head" style="background:#EFF6FF;border:1px solid #BFDBFE"><div class="kn-dot" style="background:#2563EB"></div><span class="kn-lbl" style="color:#1D4ED8">New</span><span class="kn-cnt" style="background:#BFDBFE;color:#1D4ED8">4</span></div>
+            <div class="kn-sub">₹3.2L total</div>
+            <div class="deal-card"><div class="d-title">CRM Setup Package</div><div class="d-person">👤 Sunita Bhat · RetailOn</div><div class="d-foot"><span class="d-val">₹80,000</span><span class="d-prob" style="background:#EFF6FF;color:#1D4ED8">10%</span></div></div>
+            <div class="deal-card"><div class="d-title">Monthly Subscription</div><div class="d-person">👤 Arjun Seth · TechPro</div><div class="d-foot"><span class="d-val">₹45,000</span><span class="d-prob" style="background:#EFF6FF;color:#1D4ED8">15%</span></div></div>
+          </div>
+          <!-- Contacted -->
+          <div class="kanban-col">
+            <div class="kn-head" style="background:#FEF3C7;border:1px solid #FDE68A"><div class="kn-dot" style="background:#F59E0B"></div><span class="kn-lbl" style="color:#92400E">Contacted</span><span class="kn-cnt" style="background:#FDE68A;color:#92400E">3</span></div>
+            <div class="kn-sub">₹2.5L total</div>
+            <div class="deal-card"><div class="d-title">Enterprise License</div><div class="d-person">👤 Deepak Iyer · DataSync</div><div class="d-foot"><span class="d-val">₹90,000</span><span class="d-prob" style="background:#FEF3C7;color:#92400E">30%</span></div></div>
+            <div class="deal-card"><div class="d-title">Annual Maintenance</div><div class="d-person">👤 Vijay Rao · GrowthHub</div><div class="d-foot"><span class="d-val">₹65,000</span><span class="d-prob" style="background:#FEF3C7;color:#92400E">25%</span></div></div>
+          </div>
+          <!-- Proposal Sent -->
+          <div class="kanban-col">
+            <div class="kn-head" style="background:#EDE9FE;border:1px solid #DDD6FE"><div class="kn-dot" style="background:#8B5CF6"></div><span class="kn-lbl" style="color:#5B21B6">Proposal Sent</span><span class="kn-cnt" style="background:#DDD6FE;color:#5B21B6">2</span></div>
+            <div class="kn-sub">₹1.7L total</div>
+            <div class="deal-card" onclick="openPanel()" style="border-color:#DDD6FE"><div class="d-title">Premium CRM Bundle</div><div class="d-person">👤 Priya Sharma · Tech Innovate</div><div class="d-foot"><span class="d-val">₹81,005</span><span class="d-prob" style="background:#EDE9FE;color:#5B21B6">60%</span></div></div>
+            <div class="deal-card"><div class="d-title">SaaS Integration</div><div class="d-person">👤 Meena Nair · CloudCo</div><div class="d-foot"><span class="d-val">₹75,000</span><span class="d-prob" style="background:#EDE9FE;color:#5B21B6">50%</span></div></div>
+          </div>
+          <!-- Negotiation -->
+          <div class="kanban-col">
+            <div class="kn-head" style="background:#FFEDD5;border:1px solid #FED7AA"><div class="kn-dot" style="background:#F97316"></div><span class="kn-lbl" style="color:#9A3412">Negotiation</span><span class="kn-cnt" style="background:#FED7AA;color:#9A3412">2</span></div>
+            <div class="kn-sub">₹2.1L total</div>
+            <div class="deal-card"><div class="d-title">Full Platform Deal</div><div class="d-person">👤 Raj Kumar · FinBridge</div><div class="d-foot"><span class="d-val">₹1,06,000</span><span class="d-prob" style="background:#FFEDD5;color:#9A3412">75%</span></div></div>
+          </div>
+          <!-- Closed Won -->
+          <div class="kanban-col">
+            <div class="kn-head" style="background:#D1FAE5;border:1px solid #A7F3D0"><div class="kn-dot" style="background:#10B981"></div><span class="kn-lbl" style="color:#065F46">Closed Won ✓</span><span class="kn-cnt" style="background:#A7F3D0;color:#065F46">5</span></div>
+            <div class="kn-sub">₹7.8L revenue</div>
+            <div class="deal-card" style="border-color:#A7F3D0"><div class="d-title">Annual CRM License</div><div class="d-person">👤 Arun Pillai · MediaMax</div><div class="d-foot"><span class="d-val">₹1,50,000</span><span class="d-prob" style="background:#D1FAE5;color:#065F46">100%</span></div></div>
+            <div class="deal-card" style="border-color:#A7F3D0"><div class="d-title">Startup Bundle</div><div class="d-person">👤 Rohit Mehta · CodeBase</div><div class="d-foot"><span class="d-val">₹60,000</span><span class="d-prob" style="background:#D1FAE5;color:#065F46">100%</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="mob-nav">
+    <div class="mn" onclick="nav('dashboard')"><span class="mi">🏠</span>Home</div>
+    <div class="mn" onclick="nav('leads')"><span class="mi">👥</span>Leads</div>
+    <div class="mn act"><span class="mi">🤝</span>Deals</div>
+    <div class="mn" onclick="nav('ai')"><span class="mi">✨</span>AI</div>
+    <div class="mn" onclick="nav('settings')"><span class="mi">⚙️</span>Settings</div>
+  </nav>
+</div>
+
+<!-- ─── AI ASSISTANT ─── -->
+<div class="screen" id="sc-ai">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sb-top"><div class="sb-ico">✦</div><div><div class="sb-name">LeadPilot AI</div><div class="sb-plan">PRO PLAN</div></div></div>
+      <nav class="sb-nav">
+        <div class="ni" onclick="nav('dashboard')"><span class="ico">🏠</span> Dashboard</div>
+        <div class="ni" onclick="nav('leads')"><span class="ico">👥</span> Leads</div>
+        <div class="ni" onclick="nav('deals')"><span class="ico">🤝</span> Deals</div>
+        <div class="ni act"><span class="ico">✨</span> AI Assistant</div>
+        <div class="ni" onclick="nav('reports')"><span class="ico">📊</span> Reports</div>
+        <div class="ni" onclick="nav('settings')"><span class="ico">⚙️</span> Settings</div>
+      </nav>
+      <div class="sb-bot"><div class="sb-ava">AT</div><div><div class="sb-user-name">Atchayam</div><div class="sb-user-email">atchayam@leadpilot.ai</div></div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:9px">
+          <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#2563EB,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:16px">✨</div>
+          <div><div style="font-weight:700;font-size:14px;color:var(--t1)">AI Assistant</div><div style="font-size:10px;color:var(--t3)">Powered by GPT-4</div></div>
+        </div>
+      </div>
+      <div class="mob-top"><div class="mob-logo"><div style="font-size:20px">✨</div><div class="mob-title">AI Assistant</div></div></div>
+      <div class="page" style="display:flex;flex-direction:column;height:calc(100vh - 44px - 52px)">
+        <div class="quick-btns">
+          <button class="qb" onclick="sendQ('Generate a follow-up for the pricing proposal')">✍️ Generate Follow-Up</button>
+          <button class="qb" onclick="sendQ('Summarize my lead notes')">📝 Summarize Notes</button>
+          <button class="qb" onclick="sendQ('What is the next step for hot leads?')">🎯 Next Step</button>
+          <button class="qb" onclick="sendQ('Give me deal closing tips')">💡 Close Deal Tips</button>
+        </div>
+        <div class="ai-layout" style="flex:1">
+          <div class="chat-box">
+            <div class="chat-msgs" id="chatMsgs">
+              <div class="msg ai">
+                <div class="m-ava">✨</div>
+                <div class="m-bub">Hi Atchayam! 👋 I'm your AI sales assistant.<br><br>I can help you:<br>• Generate personalized follow-up messages<br>• Summarize customer notes<br>• Suggest next actions for leads<br>• Answer sales strategy questions<br><br>What would you like help with?</div>
+              </div>
+              <div class="msg user">
+                <div class="m-bub">Generate a follow-up for the pricing proposal.</div>
+                <div class="m-ava" style="background:var(--surf2);color:var(--t2)">AT</div>
+              </div>
+              <div class="msg ai">
+                <div class="m-ava">✨</div>
+                <div class="m-bub"><strong>AI-Generated Follow-Up for Priya Sharma:</strong><br><br>Hi Priya, I wanted to follow up on the pricing proposal I sent last week.<br><br>Have you had a chance to review it? I'm happy to answer any questions or adjust the terms to better fit your needs.<br><br>Looking forward to hearing from you! 😊<br><br><div style="display:flex;gap:8px;margin-top:10px"><button class="btn-pri btn-sm">Copy ✓</button><button class="btn-out btn-sm">Regenerate</button></div></div>
+              </div>
+            </div>
+            <div class="chat-inp-wrap">
+              <input class="chat-inp" id="chatInp" placeholder="Ask me anything about your leads..." onkeydown="if(event.key==='Enter')sendMsg()">
+              <button class="chat-send" onclick="sendMsg()">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="mob-nav">
+    <div class="mn" onclick="nav('dashboard')"><span class="mi">🏠</span>Home</div>
+    <div class="mn" onclick="nav('leads')"><span class="mi">👥</span>Leads</div>
+    <div class="mn" onclick="nav('deals')"><span class="mi">🤝</span>Deals</div>
+    <div class="mn act"><span class="mi">✨</span>AI</div>
+    <div class="mn" onclick="nav('settings')"><span class="mi">⚙️</span>Settings</div>
+  </nav>
+</div>
+
+<!-- ─── REPORTS ─── -->
+<div class="screen" id="sc-reports">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sb-top"><div class="sb-ico">✦</div><div><div class="sb-name">LeadPilot AI</div><div class="sb-plan">PRO PLAN</div></div></div>
+      <nav class="sb-nav">
+        <div class="ni" onclick="nav('dashboard')"><span class="ico">🏠</span> Dashboard</div>
+        <div class="ni" onclick="nav('leads')"><span class="ico">👥</span> Leads</div>
+        <div class="ni" onclick="nav('deals')"><span class="ico">🤝</span> Deals</div>
+        <div class="ni" onclick="nav('ai')"><span class="ico">✨</span> AI Assistant</div>
+        <div class="ni act"><span class="ico">📊</span> Reports</div>
+        <div class="ni" onclick="nav('settings')"><span class="ico">⚙️</span> Settings</div>
+      </nav>
+      <div class="sb-bot"><div class="sb-ava">AT</div><div><div class="sb-user-name">Atchayam</div><div class="sb-user-email">atchayam@leadpilot.ai</div></div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar"><span class="tb-title">Reports & Analytics</span><div class="chips" style="margin:0"><button class="chip act" style="font-size:10px">Last 30 Days</button><button class="chip" style="font-size:10px">This Month</button><button class="chip" style="font-size:10px">Quarter</button></div></div>
+      <div class="mob-top"><div class="mob-logo"><div class="mob-ico">📊</div><div class="mob-title">Reports</div></div></div>
+      <div class="page">
+        <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+          <div class="stat-card"><div class="sc-top"><div class="sc-ico" style="background:#EFF6FF">📈</div><span class="sc-trend">↑ 24%</span></div><div><div class="sc-val" style="font-size:18px">₹7.8L</div><div class="sc-lbl">Revenue (Month)</div></div></div>
+          <div class="stat-card"><div class="sc-top"><div class="sc-ico" style="background:#D1FAE5">🎯</div><span class="sc-trend">↑ 5%</span></div><div><div class="sc-val">67%</div><div class="sc-lbl">Conversion Rate</div></div></div>
+          <div class="stat-card"><div class="sc-top"><div class="sc-ico" style="background:#EDE9FE">⏱️</div><span class="sc-trend">↓ 2d</span></div><div><div class="sc-val">18d</div><div class="sc-lbl">Avg. Close Time</div></div></div>
+          <div class="stat-card"><div class="sc-top"><div class="sc-ico" style="background:#FEF3C7">🌟</div><span class="sc-trend">↑ 3</span></div><div><div class="sc-val">4.8</div><div class="sc-lbl">Satisfaction Score</div></div></div>
+        </div>
+        <div class="reports-grid">
+          <div class="chart-card">
+            <div class="chart-title">📈 Lead Activity (6 Months)</div>
+            <div class="bar-chart">
+              <div class="bg"><div class="bar" style="height:50%;background:#93C5FD"></div><div class="bar-l">Oct</div></div>
+              <div class="bg"><div class="bar" style="height:65%;background:#93C5FD"></div><div class="bar-l">Nov</div></div>
+              <div class="bg"><div class="bar" style="height:45%;background:#93C5FD"></div><div class="bar-l">Dec</div></div>
+              <div class="bg"><div class="bar" style="height:80%;background:#3B82F6"></div><div class="bar-l">Jan</div></div>
+              <div class="bg"><div class="bar" style="height:72%;background:#3B82F6"></div><div class="bar-l">Feb</div></div>
+              <div class="bg"><div class="bar" style="height:100%;background:#2563EB"></div><div class="bar-l">Mar</div></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">🥧 Leads by Status</div>
+            <div class="donut-wrap">
+              <svg width="110" height="110" viewBox="0 0 110 110">
+                <circle cx="55" cy="55" r="44" fill="none" stroke="var(--surf2)" stroke-width="18"/>
+                <circle cx="55" cy="55" r="44" fill="none" stroke="#2563EB" stroke-width="18" stroke-dasharray="70 207" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+                <circle cx="55" cy="55" r="44" fill="none" stroke="#F59E0B" stroke-width="18" stroke-dasharray="46 207" stroke-dashoffset="-70" transform="rotate(-90 55 55)"/>
+                <circle cx="55" cy="55" r="44" fill="none" stroke="#8B5CF6" stroke-width="18" stroke-dasharray="35 207" stroke-dashoffset="-116" transform="rotate(-90 55 55)"/>
+                <circle cx="55" cy="55" r="44" fill="none" stroke="#10B981" stroke-width="18" stroke-dasharray="24 207" stroke-dashoffset="-151" transform="rotate(-90 55 55)"/>
+                <circle cx="55" cy="55" r="44" fill="none" stroke="#EF4444" stroke-width="18" stroke-dasharray="13 207" stroke-dashoffset="-175" transform="rotate(-90 55 55)"/>
+                <text x="55" y="51" text-anchor="middle" fill="var(--t1)" font-size="16" font-weight="800" font-family="Inter">245</text>
+                <text x="55" y="63" text-anchor="middle" fill="var(--t3)" font-size="9" font-family="Inter">total</text>
+              </svg>
+              <div class="legend">
+                <div class="leg-item"><div class="leg-dot" style="background:#2563EB"></div><span>New</span><span class="leg-val" style="color:#2563EB">45</span></div>
+                <div class="leg-item"><div class="leg-dot" style="background:#F59E0B"></div><span>Contacted</span><span class="leg-val" style="color:#F59E0B">80</span></div>
+                <div class="leg-item"><div class="leg-dot" style="background:#8B5CF6"></div><span>Follow Up</span><span class="leg-val" style="color:#8B5CF6">60</span></div>
+                <div class="leg-item"><div class="leg-dot" style="background:#10B981"></div><span>Qualified</span><span class="leg-val" style="color:#10B981">40</span></div>
+                <div class="leg-item"><div class="leg-dot" style="background:#EF4444"></div><span>Lost</span><span class="leg-val" style="color:#EF4444">20</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">💰 Revenue (₹ Monthly)</div>
+            <div class="bar-chart">
+              <div class="bg"><div class="bar" style="height:35%;background:#6EE7B7"></div><div class="bar-l">Oct</div></div>
+              <div class="bg"><div class="bar" style="height:50%;background:#6EE7B7"></div><div class="bar-l">Nov</div></div>
+              <div class="bg"><div class="bar" style="height:42%;background:#6EE7B7"></div><div class="bar-l">Dec</div></div>
+              <div class="bg"><div class="bar" style="height:75%;background:#34D399"></div><div class="bar-l">Jan</div></div>
+              <div class="bg"><div class="bar" style="height:62%;background:#34D399"></div><div class="bar-l">Feb</div></div>
+              <div class="bg"><div class="bar" style="height:100%;background:#10B981"></div><div class="bar-l">Mar</div></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">🏗️ Pipeline Health</div>
+            <div class="pbar-list">
+              <div class="pb-row"><span class="pb-lbl">New</span><div class="pb-track"><div class="pb-fill" style="width:60%;background:#2563EB"></div></div><span class="pb-val" style="color:#2563EB">12</span></div>
+              <div class="pb-row"><span class="pb-lbl">Contacted</span><div class="pb-track"><div class="pb-fill" style="width:45%;background:#F59E0B"></div></div><span class="pb-val" style="color:#F59E0B">8</span></div>
+              <div class="pb-row"><span class="pb-lbl">Proposal</span><div class="pb-track"><div class="pb-fill" style="width:35%;background:#8B5CF6"></div></div><span class="pb-val" style="color:#8B5CF6">6</span></div>
+              <div class="pb-row"><span class="pb-lbl">Negotiation</span><div class="pb-track"><div class="pb-fill" style="width:25%;background:#F97316"></div></div><span class="pb-val" style="color:#F97316">4</span></div>
+              <div class="pb-row"><span class="pb-lbl">Closed Won</span><div class="pb-track"><div class="pb-fill" style="width:18%;background:#10B981"></div></div><span class="pb-val" style="color:#10B981">3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="mob-nav">
+    <div class="mn" onclick="nav('dashboard')"><span class="mi">🏠</span>Home</div>
+    <div class="mn" onclick="nav('leads')"><span class="mi">👥</span>Leads</div>
+    <div class="mn" onclick="nav('deals')"><span class="mi">🤝</span>Deals</div>
+    <div class="mn" onclick="nav('ai')"><span class="mi">✨</span>AI</div>
+    <div class="mn" onclick="nav('settings')"><span class="mi">⚙️</span>Settings</div>
+  </nav>
+</div>
+
+<!-- ─── SETTINGS ─── -->
+<div class="screen" id="sc-settings">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sb-top"><div class="sb-ico">✦</div><div><div class="sb-name">LeadPilot AI</div><div class="sb-plan">PRO PLAN</div></div></div>
+      <nav class="sb-nav">
+        <div class="ni" onclick="nav('dashboard')"><span class="ico">🏠</span> Dashboard</div>
+        <div class="ni" onclick="nav('leads')"><span class="ico">👥</span> Leads</div>
+        <div class="ni" onclick="nav('deals')"><span class="ico">🤝</span> Deals</div>
+        <div class="ni" onclick="nav('ai')"><span class="ico">✨</span> AI Assistant</div>
+        <div class="ni" onclick="nav('reports')"><span class="ico">📊</span> Reports</div>
+        <div class="ni act"><span class="ico">⚙️</span> Settings</div>
+      </nav>
+      <div class="sb-bot"><div class="sb-ava">AT</div><div><div class="sb-user-name">Atchayam</div><div class="sb-user-email">atchayam@leadpilot.ai</div></div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar"><span class="tb-title">Settings</span></div>
+      <div class="mob-top"><div class="mob-logo"><div class="mob-ico">⚙️</div><div class="mob-title">Settings</div></div></div>
+      <div class="page" style="max-width:680px">
+        <div class="profile-hdr">
+          <div class="p-ava-lg">AT</div>
+          <div style="flex:1">
+            <div class="p-nm">Atchayam T</div>
+            <div class="p-em">atchayam@leadpilot.ai</div>
+            <div class="plan-bdg">⭐ PRO PLAN</div>
+          </div>
+          <button class="btn-out btn-sm" style="align-self:flex-start">Edit Profile</button>
+        </div>
+
+        <!-- Theme Toggle Section -->
+        <div class="settings-box">
+          <div class="theme-row">
+            <div class="s-ico" style="background:#EFF6FF">🎨</div>
+            <div class="s-lbl">
+              <div class="s-name">Theme</div>
+              <div class="s-sub" id="theme-status-txt">Currently: Light Mode</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:12px;color:var(--t3)" id="theme-label-left">☀️ Light</span>
+              <div class="toggle-switch" id="main-toggle" onclick="toggleTheme()">
+                <div class="toggle-knob"></div>
+              </div>
+              <span style="font-size:12px;color:var(--t3)" id="theme-label-right">🌙 Dark</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-box">
+          <div class="s-row"><div class="s-ico" style="background:#EFF6FF">🏢</div><div class="s-lbl"><div class="s-name">Business Name</div><div class="s-sub">LeadPilot AI Solutions</div></div><span class="s-chevron">›</span></div>
+          <div class="s-row"><div class="s-ico" style="background:#FEF3C7">📞</div><div class="s-lbl"><div class="s-name">Phone Number</div><div class="s-sub">+91 98765 43210</div></div><span class="s-chevron">›</span></div>
+          <div class="s-row"><div class="s-ico" style="background:#EDE9FE">🔑</div><div class="s-lbl"><div class="s-name">Change Password</div><div class="s-sub">Last changed 30 days ago</div></div><span class="s-chevron">›</span></div>
+          <div class="s-row"><div class="s-ico" style="background:#D1FAE5">🤖</div><div class="s-lbl"><div class="s-name">OpenAI API Key</div><div class="s-sub">Add key in backend/.env → OPENAI_API_KEY=sk-...</div></div><span class="s-chevron">›</span></div>
+        </div>
+
+        <div class="settings-box">
+          <div class="s-row"><div class="s-ico" style="background:#FEF3C7">🔔</div><div class="s-lbl"><div class="s-name">Notifications</div><div class="s-sub">Follow-up reminders enabled</div></div><span class="s-chevron">›</span></div>
+          <div class="s-row"><div class="s-ico" style="background:#EFF6FF">🌐</div><div class="s-lbl"><div class="s-name">Language</div><div class="s-sub">English (India)</div></div><span class="s-chevron">›</span></div>
+        </div>
+
+        <div class="settings-box">
+          <div class="s-row" style="cursor:pointer"><div class="s-ico" style="background:#FEE2E2">🚪</div><div class="s-lbl"><div class="s-name" style="color:var(--danger)">Sign Out</div><div class="s-sub">Log out from your account</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="mob-nav">
+    <div class="mn" onclick="nav('dashboard')"><span class="mi">🏠</span>Home</div>
+    <div class="mn" onclick="nav('leads')"><span class="mi">👥</span>Leads</div>
+    <div class="mn" onclick="nav('deals')"><span class="mi">🤝</span>Deals</div>
+    <div class="mn" onclick="nav('ai')"><span class="mi">✨</span>AI</div>
+    <div class="mn act"><span class="mi">⚙️</span>Settings</div>
+  </nav>
+</div>
+
+<!-- ─── LANDING ─── -->
+<div class="screen" id="sc-landing">
+  <div class="landing-page">
+    <nav class="landing-nav">
+      <div class="landing-logo"><div class="landing-logo-ico">✦</div>LeadPilot AI</div>
+      <div class="nav-links">
+        <a href="#">Features</a><a href="#">Pricing</a><a href="#">Resources</a><a href="#">Blog</a>
+      </div>
+      <div class="nav-btns">
+        <button class="btn-out btn-sm">Log In</button>
+        <button class="btn-hero" style="padding:8px 18px;font-size:12px">Start Free Trial</button>
+      </div>
+    </nav>
+    <div class="hero-section">
+      <div class="hero-badge">✨ AI-Powered Sales Intelligence</div>
+      <h1 class="hero-title">Close More Deals with<br><span>AI-Powered CRM.</span></h1>
+      <p class="hero-sub">Smart follow-ups. Simple pipelines. Powerful insights. Built for small businesses in emerging markets.</p>
+      <div class="hero-btns">
+        <button class="btn-hero" onclick="nav('dashboard')">Start Your Free Trial →</button>
+        <button class="btn-out" style="padding:13px 28px;font-size:14px">Watch Demo ▶</button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="h-stat-val">2,400+</div><div class="h-stat-lbl">Businesses using LeadPilot</div></div>
+        <div><div class="h-stat-val">₹48Cr+</div><div class="h-stat-lbl">Revenue closed via AI</div></div>
+        <div><div class="h-stat-val">67%</div><div class="h-stat-lbl">Higher conversion rate</div></div>
+      </div>
+    </div>
+    <div class="features-sec">
+      <h2 class="features-title">Automate Your Sales Process</h2>
+      <p class="features-sub">Everything you need to manage leads, track deals, and close faster with AI.</p>
+      <div class="features-grid">
+        <div class="feat-card"><div class="feat-ico" style="background:#EFF6FF">✨</div><div class="feat-name">AI Follow-Up Reminders</div><div class="feat-desc">Never miss a follow-up. AI analyzes leads and suggests personalized messages at the right time.</div></div>
+        <div class="feat-card"><div class="feat-ico" style="background:#EDE9FE">🏗️</div><div class="feat-name">Pipeline Management</div><div class="feat-desc">Visual Kanban board to track every deal from first contact to close. Drag and drop stages.</div></div>
+        <div class="feat-card"><div class="feat-ico" style="background:#D1FAE5">💡</div><div class="feat-name">Deal Insights</div><div class="feat-desc">AI tells you which deals are at risk and exactly what action to take to maximize revenue.</div></div>
+        <div class="feat-card"><div class="feat-ico" style="background:#FEF3C7">📊</div><div class="feat-name">Revenue Analytics</div><div class="feat-desc">Real-time dashboards showing pipeline health, conversion rates, and monthly revenue trends.</div></div>
+        <div class="feat-card"><div class="feat-ico" style="background:#FFEDD5">📝</div><div class="feat-name">Smart Note Summaries</div><div class="feat-desc">AI summarizes your call notes into actionable insights and suggests the best follow-up strategy.</div></div>
+        <div class="feat-card"><div class="feat-ico" style="background:#FEE2E2">📱</div><div class="feat-name">Mobile-First Design</div><div class="feat-desc">Full Flutter app for iOS and Android. Manage your entire pipeline from your phone.</div></div>
+      </div>
+    </div>
+    <div class="pricing-sec">
+      <h2 class="pricing-title">Simple, Transparent Pricing</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="pc-plan">FREE PLAN</div>
+          <div class="pc-price">₹0<span>/month</span></div>
+          <div class="pc-feats">
+            <div class="pf"><span class="pf-check">✓</span> Up to 50 leads</div>
+            <div class="pf"><span class="pf-check">✓</span> Basic pipeline</div>
+            <div class="pf"><span class="pf-check">✓</span> Email support</div>
+            <div class="pf" style="color:var(--t3)"><span class="pf-no">✗</span> AI features</div>
+            <div class="pf" style="color:var(--t3)"><span class="pf-no">✗</span> Advanced analytics</div>
+          </div>
+          <button class="btn-out" style="width:100%;padding:11px">Get Started Free</button>
+        </div>
+        <div class="pricing-card featured">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="pc-plan" style="color:#2563EB;margin:0">PRO PLAN</div>
+            <span style="background:#2563EB;color:#fff;border-radius:20px;font-size:9px;font-weight:700;padding:2px 8px">POPULAR</span>
+          </div>
+          <div class="pc-price">₹1,499<span>/month</span></div>
+          <div class="pc-feats">
+            <div class="pf"><span class="pf-check">✓</span> Unlimited leads</div>
+            <div class="pf"><span class="pf-check">✓</span> Full pipeline management</div>
+            <div class="pf"><span class="pf-check">✓</span> AI follow-up generator</div>
+            <div class="pf"><span class="pf-check">✓</span> AI note summarizer</div>
+            <div class="pf"><span class="pf-check">✓</span> Advanced analytics</div>
+          </div>
+          <button class="btn-hero" style="width:100%;padding:11px;font-size:13px;box-shadow:none">Start Pro Trial →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="mob-nav">
+    <div class="mn" onclick="nav('dashboard')"><span class="mi">🏠</span>Home</div>
+    <div class="mn" onclick="nav('leads')"><span class="mi">👥</span>Leads</div>
+    <div class="mn" onclick="nav('deals')"><span class="mi">🤝</span>Deals</div>
+    <div class="mn" onclick="nav('ai')"><span class="mi">✨</span>AI</div>
+    <div class="mn" onclick="nav('settings')"><span class="mi">⚙️</span>Settings</div>
+  </nav>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ── NAVIGATION ──
+function nav(page) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+  document.getElementById('sc-' + page).classList.add('show');
+  document.querySelectorAll('#pnav .pn').forEach((b,i) => {
+    b.classList.remove('act');
+    const pages = ['dashboard','leads','deals','ai','reports','settings','landing'];
+    if (pages[i] === page) b.classList.add('act');
+  });
+  closePanel();
+  window.scrollTo(0, 0);
+}
+
+// ── THEME ── (the key fix: toggles data-theme on <html>)
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+
+  // Update all theme-related UI
+  const btn = document.getElementById('theme-btn');
+  const toggle = document.getElementById('main-toggle');
+  const statusTxt = document.getElementById('theme-status-txt');
+
+  if (newTheme === 'dark') {
+    btn.textContent = '☀️ Light Mode';
+    toggle.classList.add('on');
+    if (statusTxt) statusTxt.textContent = 'Currently: Dark Mode';
+  } else {
+    btn.textContent = '🌙 Dark Mode';
+    toggle.classList.remove('on');
+    if (statusTxt) statusTxt.textContent = 'Currently: Light Mode';
+  }
+}
+
+// ── LEAD PANEL ──
+function openPanel() {
+  document.getElementById('leadPanel').classList.add('open');
+}
+function closePanel() {
+  document.getElementById('leadPanel').classList.remove('open');
+}
+
+// ── AI CHAT ──
+const replies = [
+  "Based on your pipeline, I recommend following up with Priya Sharma today — she's been in proposal stage for 3 days and has 60% close probability. 🎯",
+  "For leads in negotiation, try sending a limited-time offer. Deals close 40% faster with a time incentive. ⚡",
+  "Your pipeline looks healthy! Focus on the deals in negotiation stage — they represent ₹3.2L in potential revenue. 💰",
+  "Call Raj Kumar directly rather than emailing — his deal has been stalled for 5 days and a quick call could unblock it. 📞",
+  "Tuesday-Thursday 10am-12pm has the highest response rates for your lead segment. Schedule follow-ups accordingly! ✅",
+  "I suggest personalizing each follow-up with specific details from your last conversation. Personalized messages get 3x higher response rates. 💌"
+];
+let ri = 0;
+
+function sendMsg() {
+  const inp = document.getElementById('chatInp');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  addMsg(txt, 'user');
+  inp.value = '';
+  setTimeout(() => addMsg(replies[ri++ % replies.length], 'ai'), 800);
+}
+
+function sendQ(txt) {
+  addMsg(txt, 'user');
+  setTimeout(() => addMsg(replies[ri++ % replies.length], 'ai'), 800);
+}
+
+function addMsg(text, role) {
+  const c = document.getElementById('chatMsgs');
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  const avaStyle = role === 'ai'
+    ? 'background:#DBEAFE;color:#1D4ED8'
+    : 'background:var(--surf2);color:var(--t2)';
+  const avaText = role === 'ai' ? '✨' : 'AT';
+  d.innerHTML = role === 'ai'
+    ? `<div class="m-ava" style="${avaStyle}">${avaText}</div><div class="m-bub">${text}</div>`
+    : `<div class="m-bub">${text}</div><div class="m-ava" style="${avaStyle}">${avaText}</div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+
+// ── CHIP TOGGLE ──
+document.querySelectorAll('.chips').forEach(group => {
+  group.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('act'));
+      chip.classList.add('act');
+    });
+  });
+});
+</script>
+</body>
+</html>
